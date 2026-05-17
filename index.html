@@ -840,13 +840,13 @@ src="https://www.facebook.com/tr?id=1611034359973686&ev=PageView&noscript=1"
       ok = false; email.classList.add('invalid');
     }
     if(!ok) return;
-    const btn = document.getElementById('submitBtn');
-    btn.disabled = true;
-    btn.innerHTML = 'Enviando…';
+    const btn      = document.getElementById('submitBtn');
+    btn.disabled   = true;
+    btn.innerHTML  = 'Enviando…';
 
     const nombre   = document.getElementById('nombre').value.trim();
     const apellido = document.getElementById('apellido').value.trim();
-    const email    = document.getElementById('email').value.trim();
+    const emailVal = document.getElementById('email').value.trim();
     const pais     = document.getElementById('pais').value.trim();
     const wpp      = document.getElementById('wpp').value.trim();
     const momento  = document.getElementById('momento').value.trim();
@@ -867,7 +867,7 @@ src="https://www.facebook.com/tr?id=1611034359973686&ev=PageView&noscript=1"
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         eventName: 'CompleteRegistration',
-        email, phone: wpp, firstName: nombre, lastName: apellido,
+        email: emailVal, phone: wpp, firstName: nombre, lastName: apellido,
         fbc, fbp, userAgent: navigator.userAgent,
       }),
     }).catch(() => {});
@@ -878,7 +878,7 @@ src="https://www.facebook.com/tr?id=1611034359973686&ev=PageView&noscript=1"
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         full_name:  `${nombre} ${apellido}`,
-        email:      email,
+        email:      emailVal,
         phone:      `${pais} ${wpp}`,
         question_1: '¿En qué momento estás?',
         answer_1:   momento,
