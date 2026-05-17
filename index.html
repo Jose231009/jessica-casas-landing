@@ -689,6 +689,7 @@ src="https://www.facebook.com/tr?id=1611034359973686&ev=PageView&noscript=1"
               Quiero mi llamada inicial <span>→</span>
             </button>
             <p class="form-note">Plazas limitadas · Primer ciclo 2026</p>
+            <p id="form-error" style="display:none;margin-top:12px;font-size:13px;color:var(--terra);text-align:center;line-height:1.4"></p>
           </div>
 
           <div class="success" id="success">
@@ -843,13 +844,22 @@ src="https://www.facebook.com/tr?id=1611034359973686&ev=PageView&noscript=1"
     btn.disabled = true;
     btn.innerHTML = 'Enviando…';
 
-    // Client-side pixel events
+    const nombre   = document.getElementById('nombre').value.trim();
+    const apellido = document.getElementById('apellido').value.trim();
+    const email    = document.getElementById('email').value.trim();
+    const pais     = document.getElementById('pais').value.trim();
+    const wpp      = document.getElementById('wpp').value.trim();
+    const momento  = document.getElementById('momento').value.trim();
+    const errorEl  = document.getElementById('form-error');
+    errorEl.style.display = 'none';
+
+    // Client-side pixel events (fire and forget)
     if (window.fbq) {
       fbq('track', 'Lead');
       fbq('track', 'CompleteRegistration');
     }
 
-    // Server-side CAPI CompleteRegistration
+    // Server-side CAPI (fire and forget)
     const fbc = document.cookie.match(/_fbc=([^;]+)/)?.[1] || '';
     const fbp = document.cookie.match(/_fbp=([^;]+)/)?.[1] || '';
     fetch('/api/track', {
@@ -857,19 +867,34 @@ src="https://www.facebook.com/tr?id=1611034359973686&ev=PageView&noscript=1"
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         eventName: 'CompleteRegistration',
-        email: document.getElementById('email').value.trim(),
-        phone: document.getElementById('wpp').value.trim(),
-        firstName: document.getElementById('nombre').value.trim(),
-        lastName: document.getElementById('apellido').value.trim(),
-        fbc, fbp,
-        userAgent: navigator.userAgent,
+        email, phone: wpp, firstName: nombre, lastName: apellido,
+        fbc, fbp, userAgent: navigator.userAgent,
       }),
     }).catch(() => {});
 
-    setTimeout(()=>{
-      formState.style.display='none';
+    // Make webhook
+    fetch('https://hook.us1.make.com/qda7pyxmc3m3xqdqsc9oci6bsyar9hci', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        full_name:  `${nombre} ${apellido}`,
+        email:      email,
+        phone:      `${pais} ${wpp}`,
+        question_1: '¿En qué momento estás?',
+        answer_1:   momento,
+      }),
+    })
+    .then(res => {
+      if (!res.ok) throw new Error(res.status);
+      formState.style.display = 'none';
       success.classList.add('show');
-    }, 700);
+    })
+    .catch(() => {
+      btn.disabled = false;
+      btn.innerHTML = 'Quiero mi llamada inicial →';
+      errorEl.textContent = 'Hubo un problema al enviar. Intenta de nuevo o escríbenos por WhatsApp.';
+      errorEl.style.display = 'block';
+    });
   });
   form.querySelectorAll('input,select').forEach(f=>{
     f.addEventListener('input',()=>f.classList.remove('invalid'));
