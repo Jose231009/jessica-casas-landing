@@ -842,6 +842,27 @@ src="https://www.facebook.com/tr?id=1611034359973686&ev=PageView&noscript=1"
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
     btn.innerHTML = 'Enviando…';
+
+    // Client-side pixel Lead event
+    if (window.fbq) fbq('track', 'Lead');
+
+    // Server-side CAPI Lead event
+    const fbc = document.cookie.match(/_fbc=([^;]+)/)?.[1] || '';
+    const fbp = document.cookie.match(/_fbp=([^;]+)/)?.[1] || '';
+    fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        eventName: 'Lead',
+        email: document.getElementById('email').value.trim(),
+        phone: document.getElementById('wpp').value.trim(),
+        firstName: document.getElementById('nombre').value.trim(),
+        lastName: document.getElementById('apellido').value.trim(),
+        fbc, fbp,
+        userAgent: navigator.userAgent,
+      }),
+    }).catch(() => {});
+
     setTimeout(()=>{
       formState.style.display='none';
       success.classList.add('show');
